@@ -10,10 +10,9 @@
 * THIS DEVICE CLASS IS CURRENTLY UNDERGOING ACTIVE DEVELOPMENT AND IS MISSING MOST FEATURES. 
 * PLEASE KEEP THIS IN MIND IF YOU DECIDE TO USE THIS PARTICULAR CODE FOR ANYTHING.
 */
-#include "Arduino.h"
+
 #include "stdint.h"
 #include "lis2dh12.h"
-#include "Wire.h"
 
 // =============================================================================================
 // Power consumption information
@@ -52,13 +51,19 @@ LIS2DH::LIS2DH( uint8_t sa0 ) {
   }
 }
 
+bool LIS2DH::init(TwoWire *wire) {
+  _wire = wire;
+  return init(LIS2DH_RESOLUTION_8B,LIS2DH_ODR_10HZ,LIS2DH_FS_SCALE_2G);
+}
+
 bool LIS2DH::init() {
+  _wire = Wire;
   return init(LIS2DH_RESOLUTION_8B,LIS2DH_ODR_10HZ,LIS2DH_FS_SCALE_2G);
 }
 
 bool LIS2DH::init(int resolution, int frequency, int scale) {
     bool ret = true;
-    Wire.begin(); 
+    _wire.begin(); 
     if ( this->whoAmI() ) {
       // connexion success
       
@@ -104,7 +109,7 @@ bool LIS2DH::init(int resolution, int frequency, int scale) {
  */
 bool LIS2DH::reinit() {
   bool ret = true;
-    Wire.begin(); 
+    _wire.begin(); 
     if ( this->whoAmI() ) {
       this->readSetting();
     }else {
@@ -1324,10 +1329,10 @@ bool LIS2DH::setClickTimeWindow(uint8_t raw){
  * Write a 8b register on the chip
  */
 bool LIS2DH::writeRegister(const uint8_t register_addr, const uint8_t value) {
-    Wire.beginTransmission(_address); //open communication with 
-    Wire.write(register_addr);  
-    Wire.write(value); 
-    return (Wire.endTransmission(true) == 0); 
+    _wire.beginTransmission(_address); //open communication with 
+    _wire.write(register_addr);  
+    _wire.write(value); 
+    return (_wire.endTransmission(true) == 0); 
 }
 
 /**
@@ -1380,11 +1385,11 @@ bool LIS2DH::writeMaskedRegisterI(const int register_addr, const int mask, const
  */
 uint8_t LIS2DH::readRegister(const uint8_t register_addr) {
     uint8_t reg = register_addr;
-    Wire.beginTransmission(_address); //open communication with 
-    Wire.write(reg);  
-    Wire.endTransmission(); 
-    Wire.requestFrom(_address, (uint8_t)1);
-    uint8_t v = Wire.read(); 
+    _wire.beginTransmission(_address); //open communication with 
+    _wire.write(reg);  
+    _wire.endTransmission(); 
+    _wire.requestFrom(_address, (uint8_t)1);
+    uint8_t v = _wire.read(); 
     return v;
 }
 
@@ -1405,28 +1410,28 @@ uint8_t LIS2DH::readFifo(int16_t * _buffer,const uint8_t maxSz) {
       while ( toRead > 0 ) { 
         int transferSize = (toRead >= 30)?30:toRead;
           
-        Wire.beginTransmission(_address);     // open communication with 
-        Wire.write(0x80 | LIS2DH_OUT_X_L);    // Force most significant bit to 1 to indicate a multiple read (according to doc)
-        Wire.endTransmission();  
-        Wire.requestFrom(_address, (uint8_t)(transferSize));    // Wire library is lmited to 32 bytes for each transfer then stop.
+        _wire.beginTransmission(_address);     // open communication with 
+        _wire.write(0x80 | LIS2DH_OUT_X_L);    // Force most significant bit to 1 to indicate a multiple read (according to doc)
+        _wire.endTransmission();  
+        _wire.requestFrom(_address, (uint8_t)(transferSize));    // Wire library is lmited to 32 bytes for each transfer then stop.
         for ( int i = 0 ; i < transferSize/6 ; i++ ) {
           if ( this->_resolution == LIS2DH_RESOLUTION_8B ) {
-             Wire.read();
-             buffer16[k][0] = (int8_t)Wire.read();
-             Wire.read();
-             buffer16[k][1] = (int8_t)Wire.read();
-             Wire.read();
-             buffer16[k][2] = (int8_t)Wire.read();
+             _wire.read();
+             buffer16[k][0] = (int8_t)_wire.read();
+             _wire.read();
+             buffer16[k][1] = (int8_t)_wire.read();
+             _wire.read();
+             buffer16[k][2] = (int8_t)_wire.read();
           } else {
              int shift = ( this->_resolution == LIS2DH_RESOLUTION_10B)?6:4;
-             buffer16[k][0] = Wire.read();
-             buffer16[k][0] += (int16_t)Wire.read() << 8;
+             buffer16[k][0] = _wire.read();
+             buffer16[k][0] += (int16_t)_wire.read() << 8;
              buffer16[k][0] >>= shift;
-             buffer16[k][1] = Wire.read();
-             buffer16[k][1] += (int16_t)Wire.read() << 8;
+             buffer16[k][1] = _wire.read();
+             buffer16[k][1] += (int16_t)_wire.read() << 8;
              buffer16[k][1] >>= shift;
-             buffer16[k][2] = Wire.read();
-             buffer16[k][2] += (int16_t)Wire.read() << 8;
+             buffer16[k][2] = _wire.read();
+             buffer16[k][2] += (int16_t)_wire.read() << 8;
              buffer16[k][2] >>= shift;           
           }
           k++;
