@@ -380,6 +380,7 @@ class LIS2DH {
 
     // Main function to be use
     LIS2DH(uint8_t);
+    bool init(TwoWire *wire = &Wire);
     bool init(void);                                                                                                      // Default Init 8b, 10Hz, 2G
     bool init(int resolution, int frequency, int scale);
     bool initPosition6D();                                                                                               // Configure the 6D position function on INT1
