@@ -9,7 +9,13 @@
 * NOTE: THIS IS ONLY A PARIAL RELEASE. 
 * THIS DEVICE CLASS IS CURRENTLY UNDERGOING ACTIVE DEVELOPMENT AND IS MISSING MOST FEATURES. 
 * PLEASE KEEP THIS IN MIND IF YOU DECIDE TO USE THIS PARTICULAR CODE FOR ANYTHING.
+
+* RuhanvdB -> Add support for STM32Duino, where there may be more than one i2c bus.
+* Implements TwoWire class.
 */
+
+#include "Arduino.h"
+#include "Wire.h"
 
 #ifndef _LIS2DH_H_
 #define _LIS2DH_H_
@@ -531,6 +537,7 @@ class LIS2DH {
     uint8_t _scale;             // store the current scale (xG)
     uint8_t _fifoMode;          // store the current fifo mode
     uint8_t _odr;               // store the current ODR mode
+    *TwoWire _wire;             //RuhanvdB -> Add two wire interface here.
 };
 
 
